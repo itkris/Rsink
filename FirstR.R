@@ -1,0 +1,8 @@
+library(RODBC)
+startTime1 <- Sys.time()
+cn <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=54.209.108.45\\sql2015,61835;database=SpecialProjects;trusted_connection=yes;")
+readData <- sqlFetch(cn, 'tbl_CT120_OpenOrders')
+View(readData)
+odbcClose(cn)
+endTime <- Sys.time()
+print(difftime(Sys.time(), startTime1, units="secs"))
