@@ -5,14 +5,14 @@ library(dplyr)
 library(tidyr)
 library(stringdist)
 
-masProdCat = data.frame( product_code = c("p", "v", "x", "q"), product_category = c('Smartphone', 'TV', 'Laptop', 'Tablet'), truth = c(1,1,1,1), stringsAsFactors = F)
-masCompany = data.frame( company = c('philips', 'akzo', 'van_houten', 'unilever'), truth = c(1,1,1,1), stringsAsFactors=F)
+masProdCat = data.frame( product_code = c("p", "v", "x", "q"), product_category = c('Smartphone', 'TV', 'Laptop', 'Tablet'), prodTruthTbl = c(1,1,1,1), stringsAsFactors = F)
+masCompany = data.frame( company = c('philips', 'akzo', 'van_houten', 'unilever'), stringsAsFactors=F)
 
 greplace <- function(keyWords, searchVector) {
-  output <- data.frame(company = character(), match = logical(), Company = character())
+  output <- data.frame(company = character(), match = logical(), Company = character(), compTruthTbl = integer())
   searchVector <- unique(searchVector)
   for(stri in keyWords) {
-    output <- rbind(output, data.frame(company = searchVector, match = agrepl(stri, searchVector, ignore.case=T)) %>% filter(match==T) %>%  mutate(Company=stri) )
+    output <- rbind(output, data.frame(compTruthTbl = 1, company = searchVector, match = agrepl(stri, searchVector, ignore.case=T)) %>% filter(match==T) %>%  mutate(Company=stri) )
   }
   return(output);
 }
@@ -31,7 +31,7 @@ wreplace <- function (keywords, searchString) {
 df_data <- tbl_df(read.xlsx("data/refine.xlsx", sheetIndex=1))
 
 # 1. clean up brand names
-df_cleancomps = unique(greplace(masCompany$company, df_data$company))
+df_cleancomps = greplace(masCompany$company, df_data$company)
 df_data <- left_join(df_data, df_cleancomps, by="company") %>% select(-match, -company) # we dont need the match column 
 df_data$Company[is.na(df_data$Company)] <- "philips" #cleaning that one last outlier
 
@@ -45,7 +45,8 @@ df_data <- inner_join(df_data, masProdCat, by="product_code")
 df_data <- df_data %>% unite(full_address, address, city, country, sep=", ")
 
 # 5. create dummy variables for company and product category
-df_data <- df_data %>% mutate(product_category = paste("product_", tolower(product_category), sep="")) %>% spread(product_category, truth, is.na(0)) 
+df_data <- df_data %>% mutate(product_category = paste("product_", tolower(product_category), sep="")) %>% spread(product_category, prodTruthTbl, is.na(0)) 
+df_data <- df_data %>% mutate(company_category = paste("company_", Company, sep="")) %>% spread(company_category, compTruthTbl, is.na(0)) 
 
 # 6. write to CSV file
 #View(df_data)
