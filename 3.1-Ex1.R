@@ -49,5 +49,5 @@ df_data <- df_data %>% mutate(product_category = paste("product_", tolower(produ
 df_data <- df_data %>% mutate(company_category = paste("company_", Company, sep="")) %>% spread(company_category, compTruthTbl, is.na(0)) 
 
 # 6. write to CSV file
-#View(df_data)
+# View(df_data)
 write.table(df_data, file="data/refine_clean.csv",sep=',', append=F, row.names=F)
